@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <string.h>
+void salvarDados();
 
 struct Produto {
     int codigo;
@@ -30,7 +31,6 @@ void cadastrar(){
     printf("Insira o nome do produto: ");
     fgets(lista[total].nome, 100, stdin);
     lista[total].nome[strcspn(lista[total].nome, "\n")] = '\0';
-    getchar();
 
     printf("Insira o preço do produto: ");
     scanf("%f", &lista[total].preco);
@@ -43,6 +43,8 @@ void cadastrar(){
     total++;
 
     system("cls");
+
+    salvarDados();
 }
 
 void listar(){
@@ -142,6 +144,7 @@ void atualizar(){
         
                         lista[i].quantidade = novaQuantidade;
                         printf("Alteração feita com sucesso!\nNova quantidade: %d\n\n", novaQuantidade);
+                        salvarDados();
                         return; /* Return serviu para encerrar a busca assim que o produto foi encontrado, caso contrário iria continuar e imprimir " Não encontrado." junto.*/
                     }
             }     
@@ -166,6 +169,7 @@ void atualizar(){
 
                             lista[i].quantidade = novaQuantidade;
                             printf("Alteração feita com sucesso!\nNova quantidade: %d\n\n", novaQuantidade);
+                            salvarDados();
                             return; /* Return serviu para encerrar a busca assim que o produto foi encontrado, caso contrário iria continuar e imprimir " Não encontrado." junto.*/    
                     }
             }
@@ -193,19 +197,70 @@ void remover(){
                     printf("Preço do produto: %.2f\n", lista[i].preco);
                     printf("Quantidade do produto: %d\n\n", lista[i].quantidade);
                     
-                    for (int j = i; j < total - 1; j++){ /**/
+                    for (int j = i; j < total - 1; j++){  /*for adicionado para fazer a realocaçação do array, assim deletando o cadastro corretamente*/
                     lista[j] = lista[j + 1];
                     }
 
                     total--; 
+                    salvarDados();
                     return;
                 }
         }
                 printf("Produto não encontrado.\n\n");
 }
 
+void salvarDados(){
+
+    FILE *pont_cadastros;
+
+    pont_cadastros = fopen("cadastros.txt", "w");
+
+    if (pont_cadastros == NULL)
+    {
+        printf("Arquivo não encontrado.");
+        return;
+    }
+    
+        for (int i = 0; i < total; i++)
+        {
+            fprintf(pont_cadastros, "%d;%s;%f;%d\n",
+                lista[i].codigo,
+                lista[i].nome,
+                lista[i].preco,
+                lista[i].quantidade);
+        }
+        fclose(pont_cadastros);
+}
+
+void carregarDados(){
+
+    FILE *pont_cadastros;
+
+    pont_cadastros = fopen("cadastros.txt", "r");
+
+    if (pont_cadastros == NULL) {
+        total = 0;
+        return;
+    }
+
+    total = 0;
+
+    while (fscanf(pont_cadastros, "%d;%99[^;];%f;%d\n",
+                  &lista[total].codigo,
+                  lista[total].nome,
+                  &lista[total].preco,
+                  &lista[total].quantidade) == 4) {
+
+        total++;
+    }
+
+    fclose(pont_cadastros);
+}
+
 int main(){
 setlocale(LC_ALL, "Portuguese");
+
+carregarDados();
 
 int opcao;
 
